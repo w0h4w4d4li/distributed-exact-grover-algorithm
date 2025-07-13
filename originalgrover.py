@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[27]:
+# In[2]:
 
 
 import numpy as np
 import pennylane as q
 
 
-# In[89]:
+# In[6]:
 
 
 def oracle(combo):
@@ -34,8 +34,9 @@ def diffusion(n_bits, all_wires):
         q.PauliX(wires=i)
     hadamard_transform(all_wires)
 
-def original_grover_iter(combo, num_steps):
+def original_grover_iter(combo):
     n_bits = len(combo)
+    G_steps=np.ceil((np.pi/4)*(np.sqrt(2**len(combo)))).astype(int)
     query_register = list(range(n_bits))
     aux = [n_bits]
     all_wires = query_register + aux
@@ -45,7 +46,7 @@ def original_grover_iter(combo, num_steps):
     def inner_circuit():
         q.PauliX(wires=aux)
         hadamard_transform(all_wires)
-        for _ in range(num_steps):
+        for _ in range(G_steps):
             oracle(combo)
             diffusion(n_bits, all_wires)
         return q.probs(wires=query_register)
@@ -53,9 +54,9 @@ def original_grover_iter(combo, num_steps):
     return inner_circuit()
 
 
-# In[94]:
+# In[7]:
 
 
 combo=[1,0,0]
-original_grover_iter(combo, np.ceil((np.pi/4)*(np.sqrt(2**len(combo)))).astype(int))
+original_grover_iter(combo)
 
