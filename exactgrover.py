@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[34]:
+# In[38]:
 
 
 import numpy as np
 import pennylane as q
 
 
-# In[36]:
+# In[47]:
 
 
 def oracle(combo, phi):
@@ -16,7 +16,7 @@ def oracle(combo, phi):
     for i, bit in enumerate(combo):
         if bit == 0:
             q.PauliX(wires=i)
-    q.ctrl(q.PhaseShift, control=list(range(n_bits)))(phi, wires=[n_bits])
+    q.ctrl(q.PhaseShift, control=list(range(n_bits-1)))(phi, wires=[n_bits-1])
     for i, bit in enumerate(combo):
         if bit == 0:
             q.PauliX(wires=i)
@@ -29,7 +29,7 @@ def diffusion(n_bits, all_wires, phi):
     hadamard_transform(all_wires)
     for i in range(n_bits):
         q.PauliX(wires=i)
-    q.ctrl(q.PhaseShift, control=list(range(n_bits)))(phi, wires=[n_bits])
+    q.ctrl(q.PhaseShift, control=list(range(n_bits-1)))(phi, wires=[n_bits-1])
     for i in range(n_bits):
         q.PauliX(wires=i)
     hadamard_transform(all_wires)
@@ -41,26 +41,23 @@ def modified_grover_iter(combo):
     J=np.floor((np.pi/2-theta)/(2*theta))
     phi=np.round(2*np.arcsin(np.sin(np.pi/(4*J+6))/np.sin(theta)), 5)
     
-    query_register = list(range(n_bits))
-    aux = [n_bits]
-    all_wires = query_register + aux
-    dev = q.device("default.qubit", wires=all_wires, shots=1)
+    all_wires = list(range(n_bits))
+    dev = q.device("default.qubit", wires=n_bits, shots=1)
 
     @q.qnode(dev)
     def inner_circuit():
-        q.PauliX(wires=aux)
         hadamard_transform(all_wires)
         for _ in range(J.astype(int)+1):
             oracle(combo, phi)
             diffusion(n_bits, all_wires, phi)
-        return q.probs(wires=query_register)
+        return q.probs(wires=all_wires)
 
     return inner_circuit()
 
 
-# In[37]:
+# In[79]:
 
 
-combo=[0,0,0,0]
+combo=[0,0,1,0]
 modified_grover_iter(combo)
 
